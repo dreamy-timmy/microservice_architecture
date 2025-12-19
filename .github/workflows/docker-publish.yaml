@@ -1,0 +1,72 @@
+name: Build, Publish and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  # deploy:
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   if: success()
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+
+      # Вариант 1: Деплой на Railway (раскомментируйте если используете Railway)
+      # - name: Deploy to Railway
+      #   uses: railway-app/deploy-action@v1
+      #   with:
+      #     token: ${{ secrets.RAILWAY_TOKEN }}
+      #     service: ${{ secrets.RAILWAY_SERVICE_ID }}
+
+      # Вариант 2: Деплой на Render (раскомментируйте если используете Render)
+      # - name: Deploy to Render
+      #   run: |
+      #     curl https://api.render.com/deploy/${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}
+
+      # Вариант 3: SSH деплой на собственный VPS (раскомментируйте и настройте)
+      # - name: Deploy via SSH
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.HOST }}
+      #     username: ${{ secrets.SSH_USER }}
+      #     key: ${{ secrets.SSH_KEY }}
+      #     script: |
+      #       cd /path/to/app
+      #       docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+      #       docker-compose up -d
+
+      # - name: Deployment notification
+      #   run: echo "🚀 Deployment steps configured. Uncomment relevant section in .github/workflows/docker-publish.yaml"
