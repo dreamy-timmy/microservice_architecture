@@ -4,7 +4,7 @@ this is a repo for OmSTU 7th term discipline **Microservice Architecture**...
 
 ### Microservice Architecture - Blog API
 
-- **Production**: [https://your-app.com](https://your-app.com) _(добавить позже)_
+- **Production**: [https://microservice-architecture-latest.onrender.com/docs](https://microservice-architecture-latest.onrender.com/docs) 
 - **Swagger UI (локально)**: http://localhost:3000/docs
 - **ReDoc (локально)**: http://localhost:3000/redoc
 
