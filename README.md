@@ -30,6 +30,7 @@ http://127.0.0.1:8000/docs
 
 Here we go...
 
+
 the suggested project scheme is:
 
 ```
