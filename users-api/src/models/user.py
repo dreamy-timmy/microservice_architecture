@@ -25,6 +25,3 @@ class User(Base):
     image_url = Column(String, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    articles = relationship("Article", back_populates="author", cascade="all, delete-orphan")
-    comments = relationship("Comment", back_populates="author", cascade="all, delete-orphan")

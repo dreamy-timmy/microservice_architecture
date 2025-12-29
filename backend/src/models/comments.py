@@ -19,9 +19,9 @@ class Comment(Base):
     id = Column(Integer, primary_key=True, index=True)
     body = Column(Text, nullable=False)
     article_id = Column(Integer, ForeignKey("articles.id", ondelete="CASCADE"))
-    author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    author_id = Column(Integer, nullable=False)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     article = relationship("Article", back_populates="comments")
-    author = relationship("User", back_populates="comments")
+    # author = relationship("User", back_populates="comments")

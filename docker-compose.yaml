@@ -1,12 +1,78 @@
-version: '3.8'
+# version: '3.8'
+
+# services:
+#   postgres:
+#     image: postgres:15
+#     container_name: microservice_db
+#     profiles:
+#       - dev
+#       - prod
+#     environment:
+#       POSTGRES_DB: ${POSTGRES_DB:-microservice_db}
+#       POSTGRES_USER: ${POSTGRES_USER:-postgres}
+#       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-microservice_db}"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+#       start_period: 10s
+#     networks:
+#       - microservice_network
+
+#   app:
+#     image: python:3.10-slim
+#     container_name: microservice_app
+#     profiles:
+#       - prod
+#     depends_on:
+#       postgres:
+#         condition: service_healthy
+#     environment:
+#       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-microservice_db}
+#       JWT_SECRET: ${JWT_SECRET_LOCAL}
+#       JWT_ALGORITHM: ${JWT_ALGORITHM_LOCAL}
+#       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES_LOCAL}
+#       SERVER_HOST: 0.0.0.0
+#       SERVER_PORT: 3000
+#     ports:
+#       - "3000:3000"
+#     volumes:
+#       - ./src:/app/src
+#       - ./alembic:/app/alembic
+#     working_dir: /app
+#     command: >
+#       sh -c "alembic upgrade head &&
+#              uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload"
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:3000/docs"]
+#       interval: 15s
+#       timeout: 5s
+#       retries: 5
+#       start_period: 10s
+#     networks:
+#       - microservice_network
+#     stdin_open: true
+#     tty: true
+
+# volumes:
+#   postgres_data:
+#     driver: local
+
+# networks:
+#   microservice_network:
+#     driver: bridge
+
+version: "3.8"
 
 services:
   postgres:
     image: postgres:15
-    container_name: microservice_db
-    profiles:
-      - dev
-      - prod
+    container_name: postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-microservice_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -16,54 +82,65 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-microservice_db}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
-      timeout: 5s
       retries: 5
-      start_period: 10s
     networks:
       - microservice_network
 
-  app:
-    image: python:3.10-slim
-    container_name: microservice_app
-    profiles:
-      - prod
+  # ---------------- DEV ----------------
+  app-dev:
+    build: .
+    container_name: microservice_app_dev
+    profiles: ["dev"]
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-microservice_db}
-      JWT_SECRET: ${JWT_SECRET_LOCAL}
-      JWT_ALGORITHM: ${JWT_ALGORITHM_LOCAL}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES_LOCAL}
-      SERVER_HOST: 0.0.0.0
-      SERVER_PORT: 3000
-    ports:
-      - "3000:3000"
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/microservice_db
+      JWT_SECRET: devsecret
+      JWT_ALGORITHM: HS256
     volumes:
       - ./src:/app/src
       - ./alembic:/app/alembic
-    working_dir: /app
     command: >
-      sh -c "pip install -q -r requirements.txt &&
-             alembic upgrade head &&
-             uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/docs"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      sh -c "
+      alembic upgrade head &&
+      uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload
+      "
+    ports:
+      - "3000:3000"
     networks:
       - microservice_network
-    stdin_open: true
-    tty: true
+
+  # ---------------- PROD ----------------
+  app-prod:
+    build: .
+    container_name: microservice_app_prod
+    profiles: ["prod"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/microservice_db
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+    command: >
+      sh -c "
+      alembic upgrade head &&
+      uvicorn src.main:app --host 0.0.0.0 --port 3000
+      "
+    ports:
+      - "3000:3000"
+    networks:
+      - microservice_network
 
 volumes:
   postgres_data:
-    driver: local
 
 networks:
   microservice_network:
-    driver: bridge
+
+
+# PROD: docker compose --profile prod up --build -d
+# DEV: docker compose --profile dev up --build

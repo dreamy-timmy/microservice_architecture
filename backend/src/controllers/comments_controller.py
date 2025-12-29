@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.user import User
 from src.core.deps import get_current_user
 from src.db.session import get_db
 from src.schemas.comments import CommentIn, CommentOut

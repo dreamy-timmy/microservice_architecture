@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.deps import get_current_user
+from src.core.deps import get_current_user_id
 from src.db.session import get_db
 from src.schemas.article import ArticleIn, ArticleOut, ArticleUpdate
 from src.services.article_service import ArticleService
-from src.models.user import User
 
 
 router = APIRouter(prefix="/api/articles")
@@ -14,7 +13,7 @@ router = APIRouter(prefix="/api/articles")
 async def create_article(
     article_data: ArticleIn,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    user_id: int = Depends(get_current_user_id)
     ):
     '''
     Create a new article
@@ -30,7 +29,7 @@ async def create_article(
         title=article_data.title,
         description=article_data.description,
         content=article_data.body,
-        author_id=current_user.id,
+        author_id=user_id,
         db=db,
         tag_list=article_data.tag_list
     )
@@ -51,7 +50,7 @@ async def update_article(
     slug: str,
     article_change_data: ArticleUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    user_id: int = Depends(get_current_user_id)
 ):
     '''
     Update existing article
@@ -71,7 +70,7 @@ async def update_article(
     article = await ArticleService.update_article(
             slug=slug,
             update_data=update_dict,
-            user_id=current_user.id,
+            user_id=user_id,
             db=db
         )
     return article
@@ -80,10 +79,10 @@ async def update_article(
 async def delete_article(
     slug: str, 
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    user_id: int = Depends(get_current_user_id)
 ):
     await ArticleService.delete_article(
         slug=slug,
-        user_id=current_user.id,
+        user_id=user_id,
         db=db
     )

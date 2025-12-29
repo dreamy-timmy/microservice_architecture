@@ -27,10 +27,10 @@ class Article(Base):
     body = Column(Text, nullable=False)
 
     tag_list = Column(ARRAY(String), nullable=True)
-    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    author_id = Column(Integer, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    author = relationship("User", back_populates="articles")
+    # author = relationship("User", back_populates="articles")
     comments = relationship("Comment", back_populates="article", cascade="all, delete-orphan")
 
