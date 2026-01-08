@@ -27,6 +27,36 @@ from src.models.user import User
 from src.models.article import Article
 from src.models.comments import Comment
 
+import os
+from logging.config import fileConfig
+
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
+from alembic import context
+
+def get_database_url():
+    # 1. Пробуем получить из DATABASE_URL (Render)
+    db_url = os.getenv("DATABASE_URL")
+    
+    if db_url:
+        # Преобразуем postgresql:// в postgresql+asyncpg://
+        if db_url.startswith("postgresql://") and "+asyncpg" not in db_url:
+            db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+        return db_url
+    
+    # 2. Fallback для локальной разработки с docker-compose
+    return "postgresql+asyncpg://postgres:postgres@postgres:5432/microservice_db"
+
+# this is the Alembic Config object
+config = context.config
+
+# ★★★ Переопределяем sqlalchemy.url из alembic.ini ★★★
+config.set_main_option("sqlalchemy.url", get_database_url())
+
+# Interpret the config file for Python logging.
+fileConfig(config.config_file_name)
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
