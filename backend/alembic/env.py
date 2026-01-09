@@ -21,11 +21,6 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-from src.models.article import Article
-from src.models.comments import Comment
-
 import os
 from logging.config import fileConfig
 
@@ -39,17 +34,9 @@ def get_database_url():
     Получаем URL БД и конвертируем для Alembic
     Alembic нужен СИНХРОННЫЙ драйвер (psycopg2)
     """
-    # 1. Основная переменная (Render)
-    db_url = os.getenv("DATABASE_URL")
-    
-    # 2. Альтернативное имя
-    if not db_url:
-        db_url = os.getenv("DATABASE_URL_LOCAL")
-    
+    db_url = os.getenv("DATABASE_URL_LOCAL")
+
     if db_url:
-        print(f"★ Original URL: {db_url.split('@')[0]}@***")
-        
-        # ★★★ КОНВЕРТАЦИЯ: postgresql+asyncpg:// → postgresql:// ★★★
         # Alembic не работает с asyncpg, нужен psycopg2
         if "+asyncpg" in db_url:
             db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
@@ -68,24 +55,16 @@ def get_database_url():
         print(f"★ Alembic will use: {db_url.split('@')[0]}@***")
         return db_url
     
-    # Дефолтный URL для локальной разработки (тоже синхронный!)
     default_url = "postgresql://postgres:postgres@postgres:5432/microservice_db"
-    print(f"★ No DATABASE_URL found, using default: {default_url}")
     return default_url
 
-# ★★★ Переопределяем sqlalchemy.url ★★★
 config.set_main_option("sqlalchemy.url", get_database_url())
 
-# Interpret the config file for Python logging.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def run_migrations_offline() -> None:

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.deps import get_current_user
+from src.core.deps import get_current_user_id
 from src.db.session import get_db
 from src.schemas.comments import CommentIn, CommentOut
 from src.services.comment_service import CommentService
@@ -13,7 +13,7 @@ async def add_comment(
     slug: str, 
     comment_data: CommentIn, 
     db: AsyncSession = Depends(get_db), 
-    current_user = Depends(get_current_user)):
+    current_user_id = Depends(get_current_user_id)):
     """
     Add a new comment to article
     
@@ -23,18 +23,18 @@ async def add_comment(
     :type comment_data: CommentIn
     :param db: Description
     :type db: AsyncSession
-    :param current_user: Description
+    :param current_user_id: Description
     """    
     comment = await CommentService.create_comment(
         slug=slug,
         content=comment_data.body,
-        user_id=current_user.id,
+        user_id=current_user_id,
         db=db
     )
     return comment
 
 @router.get("", response_model=list[CommentOut])
-async def get_comments(slug: str, db: AsyncSession = Depends(get_db)):
+async def get_comments(slug: str, db: int = Depends(get_db)):
     """
     Get comments for article
     
@@ -48,7 +48,7 @@ async def get_comments(slug: str, db: AsyncSession = Depends(get_db)):
     return comments
 
 @router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_comment(slug: str, comment_id: int, current_user = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def delete_comment(slug: str, comment_id: int, current_user_id = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
     """
     Delete comment by id
     
@@ -59,4 +59,4 @@ async def delete_comment(slug: str, comment_id: int, current_user = Depends(get_
     :param db: Description
     :type db: AsyncSession
     """
-    await CommentService.delete_comment(comment_id, current_user.id, db)
+    await CommentService.delete_comment(comment_id, current_user_id, db)
