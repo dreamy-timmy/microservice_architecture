@@ -28,8 +28,8 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}-backend:latest
-            ${{ env.REGISTRY }}/${{ github.repository }}-backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/backend:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ github.sha }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
@@ -53,8 +53,8 @@ jobs:
           context: ./users-api
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}-users-api:latest
-            ${{ env.REGISTRY }}/${{ github.repository }}-users-api:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/users-api:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}/users-api:${{ github.sha }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
