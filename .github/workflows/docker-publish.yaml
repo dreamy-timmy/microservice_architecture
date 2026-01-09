@@ -3,10 +3,6 @@ name: Build, Publish and Deploy
 on:
   push:
     branches: [main, lab2]
-    paths:
-      - 'backend/**'
-      - 'users-api/**'
-      - '.github/workflows/docker-publish.yaml'
 
 env:
   REGISTRY: ghcr.io
@@ -14,7 +10,6 @@ env:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'backend/') || github.event_name == 'push'
     
     steps:
       - name: Checkout
@@ -40,7 +35,6 @@ jobs:
 
   users-api:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'users-api/') || github.event_name == 'push'
     
     steps:
       - name: Checkout
