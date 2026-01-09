@@ -4,6 +4,10 @@ on:
   push:
     branches: [main, lab2]
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   REGISTRY: ghcr.io
 
