@@ -1,8 +1,8 @@
-name: Build and Publish Microservices
+name: Build, Publish and Deploy
 
 on:
   push:
-    branches: [main, lab2-microservices]
+    branches: [main, lab2]
     paths:
       - 'backend/**'
       - 'users-api/**'
