@@ -1,73 +1,104 @@
-name: Build, Publish and Deploy
+name: Build and Publish Microservices
 
 on:
   push:
-    branches:
-      - main
-      - lab2
+    branches: [main, lab2-microservices]
+    paths:
+      - 'backend/**'
+      - 'users-api/**'
+      - '.github/workflows/docker-publish.yaml'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
+  backend:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    if: contains(github.event.head_commit.modified, 'backend/') || github.event_name == 'push'
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
+      
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
+      
+      - name: Build and push Backend
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./backend
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}-backend:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}-backend:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
-  # deploy:
-  #   needs: build-and-push
-  #   runs-on: ubuntu-latest
-  #   if: success()
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
+  users-api:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'users-api/') || github.event_name == 'push'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Users API
+        uses: docker/build-push-action@v5
+        with:
+          context: ./users-api
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}-users-api:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}-users-api:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
-      # Вариант 1: Деплой на Railway (раскомментируйте если используете Railway)
-      # - name: Deploy to Railway
-      #   uses: railway-app/deploy-action@v1
-      #   with:
-      #     token: ${{ secrets.RAILWAY_TOKEN }}
-      #     service: ${{ secrets.RAILWAY_SERVICE_ID }}
+# name: Build, Publish and Deploy
 
-      # Вариант 2: Деплой на Render (раскомментируйте если используете Render)
-      # - name: Deploy to Render
-      #   run: |
-      #     curl https://api.render.com/deploy/${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}
+# on:
+#   push:
+#     branches:
+#       - main
+#       - lab2
 
-      # Вариант 3: SSH деплой на собственный VPS (раскомментируйте и настройте)
-      # - name: Deploy via SSH
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.HOST }}
-      #     username: ${{ secrets.SSH_USER }}
-      #     key: ${{ secrets.SSH_KEY }}
-      #     script: |
-      #       cd /path/to/app
-      #       docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-      #       docker-compose up -d
+# env:
+#   REGISTRY: ghcr.io
+#   IMAGE_NAME: ${{ github.repository }}
 
-      # - name: Deployment notification
-      #   run: echo "🚀 Deployment steps configured. Uncomment relevant section in .github/workflows/docker-publish.yaml"
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: read
+#       packages: write
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Log in to GitHub Container Registry
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ${{ env.REGISTRY }}
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }}
+
+#       - name: Build and push Docker image
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: .
+#           push: true
+#           tags: |
+#             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+#             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
