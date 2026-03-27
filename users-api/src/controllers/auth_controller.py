@@ -27,7 +27,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     return user
     
     
-@router.post("/login", response_model=UserRead)
+@router.post("/login")
 async def login(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     #finish that!
     user = await authenticate_user(user_data.email, user_data.password, db) 
@@ -36,6 +36,6 @@ async def login(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"id": user.id})
     
-    return UserRead(email=user.email, username=user.username, token=token)
+    return {"access_token": token, "token_type": "bearer"}
 
 

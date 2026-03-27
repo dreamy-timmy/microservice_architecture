@@ -23,5 +23,6 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     bio = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
+    subscription_key = Column(String(), nullable=True, unique=True, index=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

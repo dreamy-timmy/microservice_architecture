@@ -8,7 +8,7 @@ from src.core.config import settings
 # from src.db.session import get_db
 # from src.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://users-api:3000/auth/login") # tokenUrl="/users/login" localhost:8001
 
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
     try:
@@ -17,7 +17,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
             settings.JWT_SECRET,
             algorithms=[settings.JWT_ALGORITHM]
         )
-        return payload.get("sub")
+        return payload.get("id")
     except JWSError:
         raise HTTPException(status_code=401, detail="Invalid token")
 

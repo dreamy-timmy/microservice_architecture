@@ -5,6 +5,7 @@ from src.core.deps import get_current_user_id
 from src.db.session import get_db
 from src.schemas.article import ArticleIn, ArticleOut, ArticleUpdate
 from src.services.article_service import ArticleService
+from src.tasks import send_post_notification
 
 
 router = APIRouter(prefix="/api/articles")
@@ -33,6 +34,10 @@ async def create_article(
         db=db,
         tag_list=article_data.tag_list
     )
+    
+    # Отправляем задачу в очередь для рассылки уведомлений
+    send_post_notification.delay(author_id=user_id, post_id=article.id)
+    
     return article
 
 @router.get("/{slug}", response_model=ArticleOut)
