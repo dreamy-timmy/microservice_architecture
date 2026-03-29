@@ -1,12 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.deps import get_current_user
 
 from src.db.session import get_db
-from src.schemas.user import UserRead, UserUpdate
+from src.schemas.user import UserRead, UserUpdate, UserPublic
 from src.schemas.subscription import SubscriptionKeySchema, SubscribeRequest
 
+from src.models.user import User
+
 from src.services.subscription_service import SubscriptionService
+
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -27,6 +31,11 @@ async def update_user(update_data: UserUpdate, db: AsyncSession = Depends(get_db
 
     return current_user
 
+@router.get('/users', response_model=list[UserPublic])
+async def get_all_users(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User.id, User.username))
+    return [{"id": row[0], "username": row[1]} for row in result.all()]
+
 @router.put('/users/me/subscription-key', response_model=UserRead)
 async def set_subscription_key(
     data: SubscriptionKeySchema,
@@ -35,6 +44,7 @@ async def set_subscription_key(
 ):
     """Установить subscription_key для текущего пользователя"""
     current_user.subscription_key = data.subscription_key
+
     db.add(current_user)
     await db.commit()
     await db.refresh(current_user)
@@ -50,7 +60,7 @@ async def subscribe(
     try:
         await SubscriptionService.subscribe(
             subscriber_id=current_user.id,
-            author_id=data.target_user_id,
+            target_username=data.target_username, 
             db=db
         )
     except ValueError as e:
@@ -58,3 +68,9 @@ async def subscribe(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+@router.get("/users/me/subscribers")
+async def get_all_subscribers(current_user = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Получить всех подписчиков текущего пользователя"""
+    subscribers = await SubscriptionService.get_author_subscribers(current_user.id, db)
+    return subscribers

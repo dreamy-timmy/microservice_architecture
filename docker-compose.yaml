@@ -74,6 +74,7 @@ services:
     build: ./worker
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
       DATABASE_URL_USERS: postgresql+asyncpg://postgres:postgres@db-users:5432/users_db
       PUSH_SERVICE_URL: http://push-notificator:8000
     depends_on:

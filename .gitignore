@@ -75,3 +75,5 @@ docker-compose.*.yml
 
 # Ignore built docs
 /site/
+
+*.zip

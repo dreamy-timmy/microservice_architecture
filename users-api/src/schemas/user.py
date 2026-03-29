@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 
-class UserCreate(BaseModel):  
+class UserCreate(BaseModel):
     email: EmailStr
     username: str
     password: str
@@ -14,6 +14,7 @@ class UserRead(BaseModel):
         email: 
         username: 
     '''
+    id: int
     email: EmailStr
     username: str
     bio: Optional[str] = None
@@ -22,7 +23,15 @@ class UserRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
     
+class UserPublic(BaseModel):
+    id: int
+    username: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserUpdate(BaseModel):
+    id: int
     email: Optional[EmailStr] = None
     username: Optional[str] = None
     bio: Optional[str] = None

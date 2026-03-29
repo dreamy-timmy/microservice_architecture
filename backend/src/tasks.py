@@ -4,8 +4,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True, max_retries=3)
-def send_post_notification(self, author_id: int, post_id: int):
+@celery_app.task(bind=True, max_retries=3, name="send_notifications")
+def send_post_notifications(self, author_id: int, post_id: int):
     """
     Отправить уведомления подписчикам о новом посте
     

@@ -44,7 +44,7 @@ engine = create_async_engine(DATABASE_URL_USERS, echo=False)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
-@app.task(bind=True, max_retries=3, default_retry_delay=60)
+@app.task(bind=True, max_retries=3, default_retry_delay=60, name="send_notifications")
 def send_notifications(self, author_id: int, post_id: int):
     """
     Обработать задачу отправки уведомлений о новом посте
@@ -120,53 +120,20 @@ async def send_notification_to_subscriber(client, subscriber, message, author_id
 
 
 async def get_author_subscribers(session: AsyncSession, author_id: int):
-    """Получить всех подписчиков автора с их subscription_key"""
-    from sqlalchemy import select
-    
-    # Строим запрос к таблицам users и subscriptions
-    # SELECT u.id, u.subscription_key FROM users u
-    # JOIN subscriptions s ON u.id = s.subscriber_id
-    # WHERE s.author_id = ?
-    
-    # query = """
-    # SELECT u.id, u.subscription_key 
-    # FROM users u
-    # JOIN subscriptions s ON u.id = s.subscriber_id
-    # WHERE s.author_id = :author_id AND u.subscription_key IS NOT NULL
-    # """
-    
-    result = await session.execute(
-        select(
-            "id",
-            "subscription_key"
-        ).select_from(
-            "SELECT u.id, u.subscription_key FROM users u "
-            "JOIN subscriptions s ON u.id = s.subscriber_id "
-            "WHERE s.author_id = :author_id AND u.subscription_key IS NOT NULL"
-        ),
-    )
-    
-    # На самом деле для SQLAlchemy нужно правильно выстроить запрос
-    # Давайте используем raw SQL через text()
+    """Получить подписчиков автора из БД"""
     from sqlalchemy import text
     
     result = await session.execute(
-        text(
-            """
+        text("""
             SELECT u.id, u.subscription_key 
             FROM users u
             JOIN subscriptions s ON u.id = s.subscriber_id
             WHERE s.author_id = :author_id AND u.subscription_key IS NOT NULL
-            """
-        ),
+        """),
         {"author_id": author_id}
     )
-    
     rows = result.fetchall()
-    return [
-        {"id": row[0], "subscription_key": row[1]}
-        for row in rows
-    ]
+    return [{"id": row[0], "subscription_key": row[1]} for row in rows]
 
 
 @app.task(bind=True)

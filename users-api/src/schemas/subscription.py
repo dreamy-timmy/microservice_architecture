@@ -4,4 +4,4 @@ class SubscriptionKeySchema(BaseModel):
     subscription_key: str
 
 class SubscribeRequest(BaseModel):
-    target_user_id: int
+    target_username: str 
